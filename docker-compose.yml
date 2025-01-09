@@ -1,38 +1,45 @@
-version: "3.9"
+version: "3.9"  # Specifies the version of the Docker Compose file format.
 
-services:
+services:  # Defines the services (containers) that will be run as part of this application.
   app:
     build:
-      context: .
+      context: .       # The build context is the current directory (where Dockerfile is located).
       args:
-        - DEV=true
+        - DEV=true     # Passes a build argument 'DEV' set to 'true' to the Dockerfile.
     ports:
-      - "8000:8000"
+      - "8000:8000"    # Maps the container's port 8000 to port 8000 on the host machine.
     volumes:
-      - ./app:/app
-      - dev-static-data:/vol/web
+      - ./app:/app     # Mounts the local 'app' directory into the container at '/app'.
+      - dev-static-data:/vol/web/static  # Named volume for static files in the container at '/vol/web/static'.
+      - dev-media-data:/vol/web/media    # Named volume for media files in the container at '/vol/web/media'.
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
+    # Defines the command to run when the container starts:
+    # 1. Wait for the database to be ready (a custom script or command).
+    # 2. Run database migrations.
+    # 3. Start the Django development server on all interfaces (0.0.0.0) port 8000.
     environment:
-      - DB_HOST=db
-      - DB_NAME=devdb
-      - DB_USER=devuser
-      - DB_PASS=changeme
-      - DEBUG=1
+      - DB_HOST=db        # Set the database host to the 'db' service defined below.
+      - DB_NAME=devdb     # The name of the database to connect to.
+      - DB_USER=devuser   # The username for the database.
+      - DB_PASS=changeme  # The password for the database.
+      - DEBUG=1           # Enables Django's debug mode.
     depends_on:
-      - db
+      - db  # Ensures the 'db' service starts before the 'app' service attempts to connect to it.
 
   db:
-    image: postgres:13-alpine
+    image: postgres:13-alpine  # Uses the official PostgreSQL version 13 Alpine image.
     volumes:
-      - dev-db-data:/var/lib/postgresql/data
+      - dev-db-data:/var/lib/postgresql/data  # Uses a named volume for persisting the database data.
     environment:
-      - POSTGRES_DB=devdb
-      - POSTGRES_USER=devuser
-      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=devdb         # Name of the PostgreSQL database to create on startup.
+      - POSTGRES_USER=devuser     # Username for the database.
+      - POSTGRES_PASSWORD=changeme  # Password for the database user.
 
 volumes:
-  dev-db-data:
-  dev-static-data:
+  dev-db-data:     # Named volume for database data.
+  dev-static-data: # Named volume for static files.
+  dev-media-data:  # Named volume for media files.
+

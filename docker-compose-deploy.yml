@@ -1,43 +1,46 @@
-version: "3.9"
+version: "3.9"  # Specifies the Docker Compose file format version.
 
-services:
+services:  # Defines the services (containers) to be run.
   app:
     build:
-      context: .
-    restart: always
+      context: .   # The build context for the 'app' service is the current directory (where the Dockerfile is located).
+    restart: always  # Ensures that the container automatically restarts if it stops unexpectedly or on Docker daemon restarts.
     volumes:
-      - static-data:/vol/web
+      - static-data:/vol/web/static  # Named volume for storing and sharing static files within the container.
+      - media-data:/vol/web/media    # Named volume for storing and sharing media files (like user uploads).
     environment:
-      - DB_HOST=db
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - SECRET_KEY=${DJANGO_SECRET_KEY}
-      - ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DB_HOST=db                  # The hostname or service name for the database (points to the 'db' service below).
+      - DB_NAME=${DB_NAME}          # Database name, pulled from an environment variable in the host or .env file.
+      - DB_USER=${DB_USER}          # Database user, pulled from an environment variable.
+      - DB_PASS=${DB_PASS}          # Database password, pulled from an environment variable.
+      - SECRET_KEY=${DJANGO_SECRET_KEY}     # Django's secret key, pulled from an environment variable.
+      - ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}  # Comma-separated list of hosts/domain names that Django can serve.
     depends_on:
-      - db
+      - db  # Ensures that the 'db' service starts before the 'app' service.
 
   db:
-    image: postgres:13-alpine
-    restart: always
+    image: postgres:13-alpine  # Uses the official Postgres 13 Alpine-based image for the database.
+    restart: always            # Automatically restarts this container if it stops or on Docker restarts.
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data  # Named volume to persist PostgreSQL data.
     environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}       # Database name, from an environment variable.
+      - POSTGRES_USER=${DB_USER}     # Database user, from an environment variable.
+      - POSTGRES_PASSWORD=${DB_PASS} # Database password, from an environment variable.
 
   proxy:
     build:
-      context: ./proxy
-    restart: always
+      context: ./proxy  # The build context for the 'proxy' service is the 'proxy' folder (where the Dockerfile is located).
+    restart: always     # Automatically restarts if the container stops.
     depends_on:
-      - app
+      - app  # Ensures the proxy service starts after the 'app' service is ready.
     ports:
-      - 80:8000
+      - 80:8000  # Maps port 8000 inside the container to port 80 on the host, making the proxy accessible on http://localhost.
     volumes:
-      - static-data:/vol/static
+      - static-data:/vol/static  # Named volume for static files mounted at /vol/static within the proxy container.
+      - media-data:/vol/media    # Named volume for media files mounted at /vol/media within the proxy container.
 
 volumes:
-  postgres-data:
-  static-data:
+  postgres-data:  # Named volume for the PostgreSQL database data.
+  static-data:    # Named volume to store static files.
+  media-data:     # Named volume to store media files.
