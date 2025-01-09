@@ -14,7 +14,7 @@ LABEL maintainer="londonappdeveloper.com"
 COPY ./default.conf.tpl /etc/nginx/default.conf.tpl
 
 # Copy the uwsgi_params file into the container (often used by Django + uWSGI setups).
-COPY ./uwsgi_params /etc/nginx/uwsgi_params
+COPY ./gunicorn_headers /etc/nginx/gunicorn_headers
 
 # Copy the custom run script that will dynamically create the final NGINX config file.
 COPY ./run.sh /run.sh
