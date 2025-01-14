@@ -1,21 +1,17 @@
----
+# Workflow name
 name: Checks
 
-on: [push]
+# Trigger of the workflow
+# When we create a pull request that targets main it will run this job
+on:
+  pull_request:
+    branches: [main] 
 
+# Jobs that will run in this workflow
 jobs:
-  test-lint:
-    name: Test and Lint
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Test
-        run: docker-compose run --rm app sh -c "python manage.py wait_for_db && python manage.py test"
-      - name: Lint
-        run: docker-compose run --rm app sh -c "flake8"
+  test-list: # id of the job
+    name: Test and Lint # user friendly name
+    uses: ./.github/worflows/test-and-lint.yml # uses the file to run the job
+    secrets:  # secrets that will be used in the job
+      DUCKERHUB_USER: ${{ vars.DOCKERHUB_USER }}
+      DUCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
