@@ -11,7 +11,7 @@ on:
 jobs:
   # Run Linter and Tests before deploying
   test-lint:
-    uses: -/.github/workflows/test-and-lint.yml
+    uses: ./.github/workflows/test-and-lint.yml
     name: Test and Lint
     secrets:
       DOCKERHUB_USER: ${{ vars.DOCKERHUB_USER }}
