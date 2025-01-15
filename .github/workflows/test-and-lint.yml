@@ -34,3 +34,37 @@ jobs:
       
       - name: Python flake8 # Runs the linter for our python code
         run: docker compose run --rm app sh -c "flake8"
+
+
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-22.04
+    steps:
+      # Login to dockerhub
+      - name: Login to Docker Hib # Name of the step
+        uses: docker/login-action@v3 # Uses the docker login action, login to docker for the duration of the job
+        with: # Inputs for the action, use secrets from block above
+          username: ${{ secrets.DOCKERHUB_USER }} # Username for Dockerhub
+          password: ${{ secrets.DOCKERHUB_TOKEN }} # Token for Dockerhub
+
+      # Checkout the code
+      - name: Checkout # Name of the step
+        uses: actions/checkout@v4 # Uses the checkout action, checks our code
+
+      # Run terraform lint
+      - name: Terraform lint
+
+        # 1. go to the infra folder
+        # 2. run terraform init without the backend, because we dont need to actually communicate with the be
+        # because we are not making any changes there
+        # 3. run terraform validate
+        # 4. run terraform fmt -check, we just check if the code is formatted correctly, we dont make any changes
+        run: |
+          cd infra/
+          docker compose run --rm terraform -chdir=deploy/ init -backend=false
+          docker compose run --rm terraform -chdir=setup/ init -backend=false
+          docker compose run --rm terraform -chdir=setup/ validate
+          docker compose run --rm terraform -chdir=setup/ fmt -check
+          docker compose run --rm terraform -chdir=deploy/ validate
+          docker compose run --rm terraform -chdir=deploy/ fmt -check
+
