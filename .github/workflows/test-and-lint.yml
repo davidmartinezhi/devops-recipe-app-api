@@ -23,8 +23,8 @@ jobs:
       - name: Login to Docker Hib # Name of the step
         uses: docker/login-action@v3 # Uses the docker login action, login to docker for the duration of the job
         with: # Inputs for the action, use secrets from block above
-          username: ${{ secret.DOCKERHUB_USER }} # Username for Dockerhub
-          password: ${{ secret.DOCKERHUB_TOKEN }} # Token for Dockerhub
+          username: ${{ secrets.DOCKERHUB_USER }} # Username for Dockerhub
+          password: ${{ secrets.DOCKERHUB_TOKEN }} # Token for Dockerhub
 
       - name: Checkout # Name of the step
         uses: actions/checkout@v4 # Uses the checkout action, checks our code
