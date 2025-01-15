@@ -9,7 +9,7 @@ on:
 
 # Jobs that will run in this workflow
 jobs:
-  test-list: # id of the job
+  test-and-lint: # id of the job
     name: Test and Lint # user friendly name
     uses: ./.github/workflows/test-and-lint.yml # uses the file to run the job
     secrets:  # secrets that will be used in the job
