@@ -1,0 +1,44 @@
+name: Destroy
+
+# Trigger for the workflow dispatch
+# This allows us to manually trigger the workflow in the github user interface
+# This can be used for releases, but in this case we are using it to destroy resources
+on: 
+  workflow_dispatch:
+    inputs:
+      environment: # The type of input, the environment we want to destroy
+        type: choice
+        description: 'Which environment to remove AWS resourcesfor?'
+        options:
+          - staging
+          - prod # In a real world scenario, we would remove the prod option. This is just to save money for the demo
+
+jobs:
+  destroy:
+    name: Destroy
+    runs-on: ubuntu-22.04
+
+    steps:
+      # We check out the code
+      - name: Checkout 
+        uses: actions/checkout@v4
+
+      # Terraform destroy job
+      - name:  Terraform Destroy
+
+        # We set the environment variables needed for the job
+        env:
+          AWS_ACCESS_KEY_ID: ${{ vars.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # 1. We export a new variable that gets the value from the input and sets it as the envirnment variable TF_WORKSPACE. 
+        # This is a terraform variable that is used to set the workspace for the action we want to run
+      # 2. We change the directory to the infra folder
+      # 3. We run the terraform init so we pull down the terraform state and set the terraform state lock. Downloads all the provider info for terraform
+      # 4. We run the terraform destroy command with the -auto-approve flag to automatically approve the destroy
+      run: |
+        export TF_WORKSPACE=${{ github.event.inputs.environment }}
+        cd infra/
+        docker compose run --rm terraform -chdir=deploy/ init
+        docker compose run --rm terraform -chdir=deploy/ destroy -auto-approve
+
