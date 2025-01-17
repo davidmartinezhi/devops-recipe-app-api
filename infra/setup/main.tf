@@ -13,8 +13,8 @@ terraform {
     bucket         = "devops-recipe-app-tf-state-david-demo" # name of bucket
     key            = "tf-state-setup"                        # name of subfolder in bucket
     region         = "us-east-2"                             # region of bucket
-    encrypt        = true                                    # encrypt the state file
     dynamodb_table = "devops-recipe-app-api-tf-lock"         # name of dynamodb table
+    encrypt        = true                                    # encrypt the state file
   }
 }
 
