@@ -21,9 +21,9 @@ resource "aws_internet_gateway" "main" { # Resource type and name have to be uni
   }
 }
 
-###################################################################################
-# Public Subnet for the ALB (Application Load Balancer) public access
-###################################################################################
+########################################################################
+# Public Subnets for the ALB (Application Load Balancer) public access #
+########################################################################
 # Public Subnet for the ALB (Application Load Balancer)
 # they become accessible by signing them a public ip address
 
@@ -56,6 +56,8 @@ resource "aws_route_table_association" "public_a" {
 }
 
 # Add a route to route table to link up internet access to our internet gateway
+# 0.0.0.0/0 is essentially a way of saying “every IP address”. In a route table, adding a route with the destination 0.0.0.0/0 means 
+# “send all traffic (to any IP address) out through the specified gateway,” which in your case is the Internet Gateway.
 resource "aws_route" "public_internet_access_a" {       # This creates a aws route
   route_table_id         = aws_route_table.public_a.id  # It has a route table id
   destination_cidr_block = "0.0.0.0/0"                  # All IP addresses
@@ -95,4 +97,27 @@ resource "aws_route" "public_internet_access_b" {       # This creates a aws rou
   route_table_id         = aws_route_table.public_b.id  # It has a route table id
   destination_cidr_block = "0.0.0.0/0"                  # All IP addresses
   gateway_id             = aws_internet_gateway.main.id # Go through the internet gateway
+}
+
+############################################
+# Private Subnets for internal access only #
+############################################
+resource "aws_subnet" "private_a" {
+  vpc_id            = aws_vpc.main.id # Assign to vpn created above
+  cidr_block        = "10.1.10.0/24"  # Subnet for the private addresses (unique range)
+  availability_zone = "${data.aws_region.current.name}a"
+
+  tags = {
+    Name = "${local.prefix}-private-a"
+  }
+}
+
+resource "aws_subnet" "private_b" {
+  vpc_id            = aws_vpc.main.id # Assign to vpn created above
+  cidr_block        = "10.1.11.0/24"  # Subnet for the private addresses (unique range)
+  availability_zone = "${data.aws_region.current.name}b"
+
+  tags = {
+    Name = "${local.prefix}-private-b"
+  }
 }
