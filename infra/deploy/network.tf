@@ -20,3 +20,79 @@ resource "aws_internet_gateway" "main" { # Resource type and name have to be uni
     Name = "${local.prefix}-main" # prefix was defined in main.tf
   }
 }
+
+###################################################################################
+# Public Subnet for the ALB (Application Load Balancer) public access
+###################################################################################
+# Public Subnet for the ALB (Application Load Balancer)
+# they become accessible by signing them a public ip address
+
+# Creates a subnet for the ALB (Application Load Balancer) A
+resource "aws_subnet" "public_a" {
+  vpc_id                  = aws_vpc.main.id                    # Reference to the vpc created above
+  cidr_block              = "10.1.1.0/24"                      # Subnet for the ALB (Application Load Balancer), from the vpc cidr_block
+  map_public_ip_on_launch = true                               # Enable public ip address for the instances (any resource in this subnet gets mapped a public ip address)
+  availability_zone       = "${data.aws_region.current.name}a" # Get the current region and availability zone
+
+  tags = {
+    Name = "${local.prefix}-public-a"
+  }
+}
+
+# Create a route table for the vpc
+# This route gives access to the resources in the public subnet
+resource "aws_route_table" "public_a" {
+  vpc_id = aws_vpc.main.id # Reference to the vpc created above
+
+  tags = {
+    Name = "${local.prefix}-public-a"
+  }
+}
+
+# Associate the route table with the public subnet
+resource "aws_route_table_association" "public_a" {
+  subnet_id      = aws_subnet.public_a.id      # Reference to the public subnet created above
+  route_table_id = aws_route_table.public_a.id # Reference to the route table created above
+}
+
+# Add a route to route table to link up internet access to our internet gateway
+resource "aws_route" "public_internet_access_a" {       # This creates a aws route
+  route_table_id         = aws_route_table.public_a.id  # It has a route table id
+  destination_cidr_block = "0.0.0.0/0"                  # All IP addresses
+  gateway_id             = aws_internet_gateway.main.id # Go through the internet gateway
+}
+
+# Creates a subnet for the ALB (Application Load Balancer) B
+resource "aws_subnet" "public_b" {
+  vpc_id                  = aws_vpc.main.id                    # Reference to the vpc created above
+  cidr_block              = "10.1.2.0/24"                      # Subnet for the ALB (Application Load Balancer), from the vpc cidr_block
+  map_public_ip_on_launch = true                               # Enable public ip address for the instances (any resource in this subnet gets mapped a public ip address)
+  availability_zone       = "${data.aws_region.current.name}b" # Get the current region and availability zone
+
+  tags = {
+    Name = "${local.prefix}-public-b"
+  }
+}
+
+# Create a route table for the vpc
+# This route gives access to the resources in the public subnet
+resource "aws_route_table" "public_b" {
+  vpc_id = aws_vpc.main.id # Reference to the vpc created above
+
+  tags = {
+    Name = "${local.prefix}-public-b"
+  }
+}
+
+# Associate the route table with the public subnet
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id      # Reference to the public subnet created above
+  route_table_id = aws_route_table.public_b.id # Reference to the route table created above
+}
+
+# Add a route to route table to link up internet access to our internet gateway
+resource "aws_route" "public_internet_access_b" {       # This creates a aws route
+  route_table_id         = aws_route_table.public_b.id  # It has a route table id
+  destination_cidr_block = "0.0.0.0/0"                  # All IP addresses
+  gateway_id             = aws_internet_gateway.main.id # Go through the internet gateway
+}
