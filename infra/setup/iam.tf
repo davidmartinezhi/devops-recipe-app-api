@@ -179,6 +179,8 @@ resource "aws_iam_user_policy_attachment" "ec2" {
 #########################
 
 # Data is the keyword to define something we can use in a resource
+# Allows to manage RDS resources, intead of specifying the resources we use *, which means all resources
+# For this example we will use it, because we still don't have the RDS instance and we don't know which one well use
 data "aws_iam_policy_document" "rds" {
   statement {
     effect = "Allow"
