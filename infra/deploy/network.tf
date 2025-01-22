@@ -155,6 +155,8 @@ resource "aws_security_group" "endpoint_access" {
 # Connection to ECR
 # Connection to ECR requires 3 endpoints to make the connection possible, endpoint to ecr, endpoint to dkr and endpoint to s3
 # All this is required to get ecr from ecs service
+
+# Endpont api endpoint: Handles the REST API actions against ECR (e.g., listing repositories, retrieving image metadata, creating/deleting repos, etc.).
 resource "aws_vpc_endpoint" "ecr" {                                             # aws_vpc_endpoint is a resource type to create endpoints
   vpc_id              = aws_vpc.main.id                                         # Assign to vpn created above
   service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.api" # Service name for ECR, documentation page has this info
@@ -168,7 +170,7 @@ resource "aws_vpc_endpoint" "ecr" {                                             
   }
 }
 
-
+# Handles the actual Docker Registry operations. This is the “Docker” endpoint that ECS (or Docker) uses to pull/push container images.
 resource "aws_vpc_endpoint" "dkr" {     # aws_vpc_endpoint is a resource type to create endpoints
   vpc_id              = aws_vpc.main.id # Assign to vpn created above
   service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
@@ -182,6 +184,7 @@ resource "aws_vpc_endpoint" "dkr" {     # aws_vpc_endpoint is a resource type to
   }
 }
 
+# Allows ECS tasks to send logs to CloudWatch without needing internet access.
 resource "aws_vpc_endpoint" "cloudwatch_logs" { # aws_vpc_endpoint is a resource type to create endpoints
   vpc_id              = aws_vpc.main.id         # Assign to vpn created above
   service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
@@ -194,7 +197,7 @@ resource "aws_vpc_endpoint" "cloudwatch_logs" { # aws_vpc_endpoint is a resource
     Name = "${local.prefix}-cloudwatch-endpoint"
   }
 }
-
+# Used by AWS Systems Manager so you can securely access or administer EC2 instances or ECS tasks in private subnets (for example, using Session Manager).
 # Endpoint needed to have access to our running containers from our local machine by the shell
 resource "aws_vpc_endpoint" "ssm" {     # aws_vpc_endpoint is a resource type to create endpoints
   vpc_id              = aws_vpc.main.id # Assign to vpn created above
@@ -211,6 +214,8 @@ resource "aws_vpc_endpoint" "ssm" {     # aws_vpc_endpoint is a resource type to
 
 # s3 endpoint to get access to s3 bucket and pull images from there
 # This endpoint is gateway type
+# Gateway endpoints integrate with the route tables to direct traffic for S3 (and DynamoDB, if you choose) 
+#  through a private connection in the AWS backbone, rather than the public internet.
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id                                    # Assign to vpn created above
   service_name      = "com.amazonaws.${data.aws_region.current.name}.s3" # Service name for S3, documentation page has this info
