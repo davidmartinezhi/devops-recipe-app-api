@@ -173,3 +173,38 @@ resource "aws_iam_user_policy_attachment" "ec2" {
   user       = aws_iam_user.cd.name
   policy_arn = aws_iam_policy.ec2.arn
 }
+
+#########################
+# Policy for RDS access #
+#########################
+
+# Data is the keyword to define something we can use in a resource
+data "aws_iam_policy_document" "rds" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds:DescribeDBSubnetGroups",
+      "rds:DescribeDBInstances",
+      "rds:CreateDBSubnetGroup",
+      "rds:DeleteDBSubnetGroup",
+      "rds:CreateDBInstance",
+      "rds:DeleteDBInstance",
+      "rds:ListTagsForResource",
+      "rds:ModifyDBInstance"
+    ]
+    resources = ["*"]
+  }
+}
+
+# Create policy document out of the data defined above
+resource "aws_iam_policy" "rds" {
+  name        = "${aws_iam_user.cd.name}-rds"
+  description = "Allow user to manage RDS resources."
+  policy      = data.aws_iam_policy_document.rds.json
+}
+
+# Attach the policy to the CD user
+resource "aws_iam_user_policy_attachment" "rds" {
+  user       = aws_iam_user.cd.name
+  policy_arn = aws_iam_policy.rds.arn
+}
