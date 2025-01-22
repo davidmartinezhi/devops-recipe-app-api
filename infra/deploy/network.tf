@@ -121,3 +121,105 @@ resource "aws_subnet" "private_b" {
     Name = "${local.prefix}-private-b"
   }
 }
+
+########################################################################
+# Endpoints to allow ECS to access ECR, Cloudwatch and Systems Manager #
+########################################################################
+
+# Allow ecs service to connect to ecr to pull docker images
+# Cloudwatch to submits logs to read in the interface
+# Systems manager used to connect to ecs to perform administrator tasks
+
+
+# VPC endpoints allow to give our resources in the private network access to other aws services
+# For example: When docker container needs to write logs, those are sent to cloudwatch logs. So we need to give access to cloudwatch logs
+# We need to create a vpc endpoint for cloudwatch logs
+# The same for ECR
+
+
+# Creates security group assigned to endpoints that allows us to connect to those endpoints
+resource "aws_security_group" "endpoint_access" {
+  description = "Access to endpoints"
+  name        = "${local.prefix}-endpoint-access"
+  vpc_id      = aws_vpc.main.id # Assign to vpn created above
+
+  # inbound access to whatever is the security group assigned to. We will assign it to the endpoints from the cidr block of the vpc
+  ingress {
+    cidr_blocks = [aws_vpc.main.cidr_block] # gives access to it from anywhere in the vpc
+    from_port   = 443                       # All endpoints use HTTPS so we need to open port 443
+    to_port     = 443
+    protocol    = "tcp" # all HTTP trafic goes over TCP
+  }
+}
+
+# Connection to ECR
+# Connection to ECR requires 3 endpoints to make the connection possible, endpoint to ecr, endpoint to dkr and endpoint to s3
+# All this is required to get ecr from ecs service
+resource "aws_vpc_endpoint" "ecr" {                                             # aws_vpc_endpoint is a resource type to create endpoints
+  vpc_id              = aws_vpc.main.id                                         # Assign to vpn created above
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.api" # Service name for ECR, documentation page has this info
+  vpc_endpoint_type   = "Interface"                                             # Interface endpoint (Gateway and interface), 
+  private_dns_enabled = true
+  subnet_ids          = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+  security_group_ids  = [aws_security_group.endpoint_access.id]
+
+  tags = {
+    Name = "${local.prefix}-ecr-endpoint"
+  }
+}
+
+
+resource "aws_vpc_endpoint" "dkr" {     # aws_vpc_endpoint is a resource type to create endpoints
+  vpc_id              = aws_vpc.main.id # Assign to vpn created above
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
+  vpc_endpoint_type   = "Interface" # Interface endpoint (Gateway and interface), 
+  private_dns_enabled = true
+  subnet_ids          = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+  security_group_ids  = [aws_security_group.endpoint_access.id]
+
+  tags = {
+    Name = "${local.prefix}-dkr-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "cloudwatch_logs" { # aws_vpc_endpoint is a resource type to create endpoints
+  vpc_id              = aws_vpc.main.id         # Assign to vpn created above
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
+  vpc_endpoint_type   = "Interface" # Interface endpoint (Gateway and interface), 
+  private_dns_enabled = true
+  subnet_ids          = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+  security_group_ids  = [aws_security_group.endpoint_access.id]
+
+  tags = {
+    Name = "${local.prefix}-cloudwatch-endpoint"
+  }
+}
+
+# Endpoint needed to have access to our running containers from our local machine by the shell
+resource "aws_vpc_endpoint" "ssm" {     # aws_vpc_endpoint is a resource type to create endpoints
+  vpc_id              = aws_vpc.main.id # Assign to vpn created above
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.ssmmessages"
+  vpc_endpoint_type   = "Interface" # Interface endpoint (Gateway and interface), 
+  private_dns_enabled = true
+  subnet_ids          = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+  security_group_ids  = [aws_security_group.endpoint_access.id]
+
+  tags = {
+    Name = "${local.prefix}-ssmmessages-endpoint"
+  }
+}
+
+# s3 endpoint to get access to s3 bucket and pull images from there
+# This endpoint is gateway type
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id                                        # Assign to vpn created above
+  service_name      = "com.amazonaws.com.${data.aws_region.current.name}.s3" # Service name for S3, documentation page has this info
+  vpc_endpoint_type = "Gateway"                                              # Gateway endpoint (Gateway and interface),
+  route_table_ids = [
+    aws_vpc.main.default_route_table_id # Specify the route table id for our vpc
+  ]
+
+  tags = {
+    Name = "${local.prefix}-s3-endpoint"
+  }
+}
