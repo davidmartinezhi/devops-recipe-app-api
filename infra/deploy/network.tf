@@ -212,9 +212,9 @@ resource "aws_vpc_endpoint" "ssm" {     # aws_vpc_endpoint is a resource type to
 # s3 endpoint to get access to s3 bucket and pull images from there
 # This endpoint is gateway type
 resource "aws_vpc_endpoint" "s3" {
-  vpc_id            = aws_vpc.main.id                                        # Assign to vpn created above
+  vpc_id            = aws_vpc.main.id                                    # Assign to vpn created above
   service_name      = "com.amazonaws.${data.aws_region.current.name}.s3" # Service name for S3, documentation page has this info
-  vpc_endpoint_type = "Gateway"                                              # Gateway endpoint (Gateway and interface),
+  vpc_endpoint_type = "Gateway"                                          # Gateway endpoint (Gateway and interface),
   route_table_ids = [
     aws_vpc.main.default_route_table_id # Specify the route table id for our vpc
   ]
