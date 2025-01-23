@@ -15,3 +15,12 @@ variable "contact" {
   description = "Contact name/email for tagging resources"
   default     = "gerardomartinez.hi@gmail.com"
 }
+
+variable "db_username" {
+  description = "Username for the recipe app api database"
+  default     = "recipeapp"
+}
+
+variable "db_password" { # password will be stored in the secret manager, in the environment variables from github actions
+  description = "Password for the Terraform database"
+}
