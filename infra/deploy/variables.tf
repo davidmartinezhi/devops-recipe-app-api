@@ -21,6 +21,6 @@ variable "db_username" {
   default     = "recipeapp"
 }
 
-variable "DB_PASSWORD" { # password will be stored in the secret manager, in the environment variables from github actions
+variable "db_password" { # password will be stored in the secret manager, in the environment variables from github actions
   description = "Password for the Terraform database"
 }

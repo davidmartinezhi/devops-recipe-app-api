@@ -45,7 +45,7 @@ resource "aws_db_instance" "main" {
   auto_minor_version_upgrade = true                 # Aws can upgrade minor versions automatically, for security fixes
   instance_class             = "db.t4g.micro"       # Size of the server that will run the db, this impacts the cost (this is the smallest one, it depends on the application)
   username                   = var.db_username      # Credentials to connect to the db inside rds (We'll give this to the app)
-  password                   = var.DB_PASSWORD
+  password                   = var.db_password
   skip_final_snapshot        = true                          # Final snapshot is the last backup of the db, we don't need it in this course because we are just testing. In a real life app I would leave it as false
   db_subnet_group_name       = aws_db_subnet_group.main.name # Subnet group that the db will be in, make the db accessible from the private subnets
   multi_az                   = false                         # Multi availability zone, if true it will create a replica in another availability zone. For learning purposes we will leave it as false

@@ -11,4 +11,4 @@ services: # Define the services that will be used in the pipeline
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} # AWS_SESSION_TOKEN is the session token that will be used to authenticate the Terraform provider
       - AWS_DEFAULT_REGION=us-east-2 # Set the default region to us-east-2
       - TF_WORKSPACE=${TF_WORKSPACE} # TF_WORKSPACE is the Terraform workspace (environment) that will be used in the pipeline
-      - TF_VAR_DB_PASSWORD=${TF_VAR_DB_PASSWORD} # TF_VAR_db_password is the database password that will be used in the env vars
+      - TF_VAR_db_password=${TF_VAR_DB_PASSWORD} # TF_VAR_db_password is the database password that will be used in the env vars
