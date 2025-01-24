@@ -34,7 +34,7 @@ resource "aws_security_group" "rds" {
   }
 }
 
-# Creating new aws DB resource
+# Creating new aws DB resource (RDS)
 resource "aws_db_instance" "main" {
   identifier                 = "${local.prefix}-db" # Identifier in AWS
   db_name                    = "recipe"             # Name of the database
