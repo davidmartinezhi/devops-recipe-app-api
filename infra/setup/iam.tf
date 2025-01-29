@@ -196,7 +196,7 @@ data "aws_iam_policy_document" "rds" {
       "rds:ListTagsForResource",
       "rds:ModifyDBInstance",
       "rds:ModifyDBSubnetGroup",
-      "rds:AddTagsToResource",
+      "rds:AddTagsToResource", # Add tags to the resource
     ]
     resources = ["*"]
   }
