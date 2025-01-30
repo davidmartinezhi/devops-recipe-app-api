@@ -23,5 +23,5 @@ variable "db_username" {
 
 variable "db_password" {
   description = "Password for the Terraform database"
-  type = string
+  type        = string
 }
