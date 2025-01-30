@@ -41,7 +41,7 @@ resource "aws_db_instance" "main" {
   allocated_storage          = 20                   # Storage in GB, this might be increased or decreased based on the usage
   storage_type               = "gp2"                # Type of storage, gp2 is the default, cheapest and general purpose. Depends on read/write operations requirements
   engine                     = "postgres"           # Type of database. We can also create mysql, mariadb, oracle, sqlserver, aurora, etc.
-  engine_version             = "15.7"               # Version of postgres we are running
+  engine_version             = "15.7"               # Version of postgres we are running. Chekc if the version still exists in aws
   auto_minor_version_upgrade = true                 # Aws can upgrade minor versions automatically, for security fixes
   instance_class             = "db.t4g.micro"       # Size of the server that will run the db, this impacts the cost (this is the smallest one, it depends on the application)
   username                   = var.db_username      # Credentials to connect to the db inside rds (We'll give this to the app)
