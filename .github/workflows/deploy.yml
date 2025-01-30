@@ -71,28 +71,16 @@ jobs:
           docker push ${{ vars.ECR_REPO_PROXY }}:$GITHUB_SHA
 
       - name: Terraform Apply
-
-        # Setting up env variables that can be used in this step
-        # The aws cli checks for this env variables automatically for the push to ecr
-        # For terradorm in the docker compose in the infra folder, we need to set the env variables
         env:
           AWS_ACCESS_KEY_ID: ${{ vars.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           TF_VAR_db_password: ${{ secrets.TF_VAR_DB_PASSWORD }}
           TF_VAR_django_secret_key: ${{ secrets.TF_VAR_DJANGO_SECRET_KEY }}
-
-          # 1. We are setting the ecr image to the path of the ecr image we pushed in the previous job (matches the tag)
-          # 2. The same for the proxy
-          # 3. Sets variable caled workspace and the content inside the parenthesis will output the value in that file (the value saved in the previous stop, when variables are set)
-          # 4. We change directory to the infra folder
-          # 5. We run terraform init in the deploy folder (Initializes the state backend and pulls all the providers needed to run terraform)
-          # 6. Workspace select -or-create $workspace is to select the workspace we want to deploy to, so we switch to that workspace so we can apply the changes to the appropriate environment
-          # 7. We run terraform apply -auto-approve to apply the changes to the infrastructure
         run: |
           export TF_VAR_ecr_app_image="${{ vars.ECR_REPO_APP }}:$GITHUB_SHA"
           export TF_VAR_ecr_proxy_image="${{ vars.ECR_REPO_PROXY }}:$GITHUB_SHA"
           workspace=$(cat .workspace)
           cd infra/
-          docker compose run --rm terraform -chdir=deploy/ init -reconfigure
+          docker compose run --rm terraform -chdir=deploy/ init
           docker compose run --rm terraform -chdir=deploy/ workspace select -or-create $workspace
           docker compose run --rm terraform -chdir=deploy/ apply -auto-approve
