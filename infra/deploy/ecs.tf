@@ -57,8 +57,52 @@ resource "aws_ecs_task_definition" "api" {
   execution_role_arn       = aws_iam_role.task_execution_role.arn # Link to role created above that contains execution role
   task_role_arn            = aws_iam_role.app_task.arn            # Role assigned to running task once it has already started
 
-  container_definitions = jsonencode([]) # Container definitions, we will add this later
+  container_definitions = jsonencode(
+    [ # Container definition for our proxy and app
 
+      # Container definition for the proxy. 
+      # Proxy receives request by hhtp, server=s statis files and passes requests to django app
+      {
+        name              = "proxy"             # Name of the container
+        image             = var.ecr_proxy_image # Image of the container in ecr. Location of the image
+        essential         = true                # Essential means that if the container fails, the task will fail
+        memoryReservation = 256                 # Memory reservation for the container. Must not exceed the amount of memory allocated to the whole task
+        user              = "nginx"             # User that is going to run the container. 
+        portMappings = [                        # Port mapping for the container
+          {
+            containerPort = 8000
+            hostPort      = 8000
+          }
+        ]
+        environment = [ # Environment variables set for our running container
+          {
+            name  = "APP_HOST"
+            value = "127.0.0.1"
+          }
+        ]
+        # Where we map our volume. Our proxy expects the data from location /vol/static
+        # This is how we share data between the app and the proxy
+        mountPoints = [
+          {
+            readOnly      = true
+            containerPath = "/vol/static"
+            sourceVolume  = "static"
+          }
+        ]
+
+        # Log configuration for the container
+        # This tells ecs where to store the logs of the container. Which is cloudwatch
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name # Name of the log group
+            awslogs-region        = data.aws_region.current.name                # Region where the logs are going to be stored
+            awslogs-stream-prefix = "proxy"                                     # This is how we split different logs from different containers to different streams
+          }
+        }
+      }
+    ]
+  )
   # Volume is the location on the running server that has files
   # It allows to share data between running containers. (app and proxy in our case) 
   volume {
