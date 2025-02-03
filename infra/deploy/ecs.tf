@@ -58,7 +58,55 @@ resource "aws_ecs_task_definition" "api" {
   task_role_arn            = aws_iam_role.app_task.arn            # Role assigned to running task once it has already started
 
   container_definitions = jsonencode(
-    [ # Container definition for our proxy and app
+    [ # Container definition for our app and proxy
+      {
+        name              = "api"             # Name of the container
+        image             = var.ecr_app_image # Image of the container in ecr. Location of the image
+        essential         = true              # Essential means that if the container fails, the task will fail
+        memoryReservation = 256               # Memory reservation for the container. Must not exceed the amount of memory allocated to the whole task
+        user              = "django-user"     # User that is going to run the container.
+        environment = [                       # Environment variables set for our running container
+          {
+            name  = "DJANGO_SECRET_KEY"
+            value = var.django_secret_key
+          },
+          {
+            name  = "DB_HOST"
+            value = aws_db_instance.main.address # Address of the database (hostname)
+          },
+          {
+            name  = "DB_NAME"
+            value = aws_db_instance.main.db_name # Name of the database inside postgres
+          },
+          {
+            name  = "DB_USER"
+            value = aws_db_instance.main.username # Username for the database
+          },
+          {
+            name  = "DB_PASS"
+            value = aws_db_instance.main.password # Password for the database
+          },
+          {
+            name  = "ALLOWED_HOSTS"
+            value = "*" # Allowed hosts for the app
+          }
+        ]
+        mountPoints = [
+          {
+            readOnly      = false
+            containerPath = "/vol/web/static"
+            sourceVolume  = "static"
+          }
+        ],
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
+            awslogs-region        = data.aws_region.current.name
+            awslogs-stream-prefix = "api"
+          }
+        }
+      },
 
       # Container definition for the proxy. 
       # Proxy receives request by hhtp, server=s statis files and passes requests to django app
