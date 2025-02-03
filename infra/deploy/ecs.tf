@@ -88,12 +88,13 @@ resource "aws_ecs_task_definition" "api" {
           },
           {
             name  = "ALLOWED_HOSTS"
-            value = "*" # Allowed hosts for the app
+            value = "*" # Allowed hosts for the app. Domain names allowed to access the app
           }
         ]
+        # Maps volumes to location in the running container, 
         mountPoints = [
           {
-            readOnly      = false
+            readOnly      = false # Django app needs to write to the volume to store static files
             containerPath = "/vol/web/static"
             sourceVolume  = "static"
           }
@@ -103,7 +104,7 @@ resource "aws_ecs_task_definition" "api" {
           options = {
             awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
             awslogs-region        = data.aws_region.current.name
-            awslogs-stream-prefix = "api"
+            awslogs-stream-prefix = "api" # This is how we split different logs from different containers to different streams
           }
         }
       },
