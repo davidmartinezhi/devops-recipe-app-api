@@ -37,6 +37,11 @@ resource "aws_iam_role_policy_attachment" "task_ssm_policy" { # Attach the polic
   policy_arn = aws_iam_policy.task_ssm_policy.arn
 }
 
+# Create the log group for the ECS task, logs outputs from dokcer containers and stores them in cloudwatch
+resource "aws_cloudwatch_log_group" "ecs_task_logs" {
+  name = "${local.prefix}-api"
+}
+
 resource "aws_ecs_cluster" "main" { # ECS cluster configuration
   name = "${local.prefix}-cluster"  # name of the cluster
 }
