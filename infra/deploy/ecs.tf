@@ -45,3 +45,29 @@ resource "aws_cloudwatch_log_group" "ecs_task_logs" {
 resource "aws_ecs_cluster" "main" { # ECS cluster configuration
   name = "${local.prefix}-cluster"  # name of the cluster
 }
+
+# Defines the task that will run in ECS
+# We define resources, type, capabilities and other configurations
+resource "aws_ecs_task_definition" "api" {
+  family                   = "${local.prefix}-api"                # name of the task
+  requires_compatibilities = ["FARGATE"]                          # Fargate compatibility, type of task that is serverless 
+  network_mode             = "awsvpc"                             # Type of network, which is our vpc
+  cpu                      = 256                                  # CPU for the task, this is important value. This determines how much we are gonna be charged
+  memory                   = 512                                  # Memory for the task, this is important value. This determines how much we are gonna be charged
+  execution_role_arn       = aws_iam_role.task_execution_role.arn # Link to role created above that contains execution role
+  task_role_arn            = aws_iam_role.app_task.arn            # Role assigned to running task once it has already started
+
+  container_definitions = jsonencode([]) # Container definitions, we will add this later
+
+  # Volume is the location on the running server that has files
+  # It allows to share data between running containers. (app and proxy in our case) 
+  volume {
+    name = "static" # Volume name
+  }
+
+  # Defines the type of server that are containers are going to run on
+  runtime_platform {
+    operating_system_family = "LINUX"  # Operating system family
+    cpu_architecture        = "X86_64" # CPU architecture
+  }
+}
