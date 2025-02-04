@@ -204,3 +204,28 @@ resource "aws_security_group" "ecs_service" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+# ECS service resource allows you to create a ECS service in AWS
+resource "aws_ecs_service" "api" {
+  name                   = "${local.prefix}-api"              # Name of service in aws
+  cluster                = aws_ecs_cluster.main.name          # Cluster where the service is going to run
+  task_definition        = aws_ecs_task_definition.api.family # Task definition that the service is going to run
+  desired_count          = 1                                  # Number of running instances in opur services, this could increase costs
+  launch_type            = "FARGATE"                          # Launch type for the service which is not manually managed
+  platform_version       = "1.4.0"                            # Version of the platform that the service is going to run on
+  enable_execute_command = true                               # Enable execute command for the service in our running containers, for creating super users or debugging, etc.
+
+  # This block defines the network for our service 
+  network_configuration {
+    assign_public_ip = true # Allow our service to have a public ip. This is temporary and should be changed to private
+
+    # Subnets where the service is going to run since its public right now, we assign it to our public subnets
+    subnets = [
+      aws_subnet.public_a.id,
+      aws_subnet.public_b.id
+    ]
+
+    # Assign sexcurity group to the service 
+    security_groups = [aws_security_group.ecs_service.id]
+  }
+}
