@@ -164,3 +164,43 @@ resource "aws_ecs_task_definition" "api" {
     cpu_architecture        = "X86_64" # CPU architecture
   }
 }
+
+# ECS service security group. This security group manages the rules for our service that is running our task
+resource "aws_security_group" "ecs_service" {
+  description = "Access rules for the ECS service."
+  name        = "${local.prefix}-ecs-service"
+  vpc_id      = aws_vpc.main.id # Assign vpc where everythin else is in
+
+  # Outbound access to endpoints
+  # Allow access for the service running our task to access seervices like cloudwatch, s3, etc.
+  # This gives outbound access from our service to our endpoints
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # RDS connectivity
+  # This is specifically for our database. So we lock it sown to the subnets where our database is running
+  # Because our application only needs access for our database in that subnet from that port
+  egress {
+    from_port = 5432
+    to_port   = 5432
+    protocol  = "tcp"
+    cidr_blocks = [
+      aws_subnet.private_a.cidr_block,
+      aws_subnet.private_b.cidr_block,
+    ]
+  }
+
+  # HTTP inbound access
+  # We allow access to the proxy from the internet, allow access to port 8000 via TCP on all IP addresses
+  # All connections from the internet are made to this port
+  ingress {
+    from_port   = 8000 # Port where the proxy is listening
+    to_port     = 8000 # Port where the proxy is listening
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
