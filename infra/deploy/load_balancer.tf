@@ -36,3 +36,15 @@ resource "aws_security_group" "lb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+# There exists the gateway load balancer, netword load balancer and application load balancer
+# Network load balancer: Accepts requests and forwards them at network level without knowing about application info. No context about the HTTP requests that are made
+# Gateway load balancer: Security in connecting things across different vpcs
+# Application load balancer: Provides context about the HTTP requests that are made. We can terminate https certificates or foward requests from http to https
+# This is useful to have context about the requests that are made and foward request from load balancer to app service
+resource "aws_lb" "api" {
+  name               = "${local.prefix}-lb"
+  load_balancer_type = "application"                                    # Type of load balancer
+  subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id] # Application load balancer must be in public subnets there it is the internet gateway
+  security_groups    = [aws_security_group.lb.id]                       # Security group for the load balancer, this allows ingress access
+}
