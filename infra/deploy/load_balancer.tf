@@ -66,3 +66,17 @@ resource "aws_lb_target_group" "api" {
     path = "/api/health-check/"
   }
 }
+
+# Listener is the incoming component of a load balancer, how it accepts requests
+# Outgoing component is the target group, where it fowards requests to
+resource "aws_lb_listener" "api" {
+  load_balancer_arn = aws_lb.api.arn # Load balancer arn, we are assigning the listener to our load balancer
+  port              = 80             # Port of the listener
+  protocol          = "HTTP"         # Protocol of the listener. When we have custom domain we can use https
+
+  # Whenever you receive a request on port 80 foward it to our target group, which is a group of resources that we can foward requests to
+  default_action {
+    type             = "forward"                   # Action of the listener, foward requests to target group
+    target_group_arn = aws_lb_target_group.api.arn # Target group arn for the listener
+  }
+}
