@@ -198,10 +198,12 @@ resource "aws_security_group" "ecs_service" {
   # We allow access to the proxy from the internet, allow access to port 8000 via TCP on all IP addresses
   # All connections from the internet are made to this port
   ingress {
-    from_port   = 8000 # Port where the proxy is listening
-    to_port     = 8000 # Port where the proxy is listening
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port = 8000 # Port where the proxy is listening
+    to_port   = 8000 # Port where the proxy is listening
+    protocol  = "tcp"
+    security_groups = [ # Security group of the load balancer. It only accepts connections allowed by that security group
+      aws_security_group.lb.id
+    ]
   }
 }
 
