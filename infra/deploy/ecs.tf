@@ -219,15 +219,20 @@ resource "aws_ecs_service" "api" {
 
   # This block defines the network for our service 
   network_configuration {
-    assign_public_ip = true # Allow our service to have a public ip. This is temporary and should be changed to private
-
     # Subnets where the service is going to run since its public right now, we assign it to our public subnets
     subnets = [
-      aws_subnet.public_a.id,
-      aws_subnet.public_b.id
+      aws_subnet.private_a.id,
+      aws_subnet.private_b.id
     ]
 
     # Assign sexcurity group to the service 
     security_groups = [aws_security_group.ecs_service.id]
+  }
+
+  # Our service is registered in the private subnet
+  load_balancer {
+    target_group_arn = aws_lb_target_group.api.arn # Target group for the load balancer
+    container_name   = "proxy"                     # Container name we want to foward the request to. Requests is to the proxy (reverse proxy)
+    container_port   = 8000                        # Port where the container is running. Each time we have a new task, we foward it to this container
   }
 }
