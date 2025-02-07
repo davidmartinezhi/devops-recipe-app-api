@@ -48,3 +48,21 @@ resource "aws_lb" "api" {
   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id] # Application load balancer must be in public subnets there it is the internet gateway
   security_groups    = [aws_security_group.lb.id]                       # Security group for the load balancer, this allows ingress access
 }
+
+# Target group for the load balancer
+# Group of targets that we can foward requests to.
+# Idea of load balancers is that they manage load, accepts requests and forwards them to different tasks
+# For this course we will have only a single task
+resource "aws_lb_target_group" "api" {
+  name        = "${local.prefix}-api" # Name of the target group
+  protocol    = "HTTP"                # Protocol of the target group, Http is because requests will be made to the application in our private network
+  vpc_id      = aws_vpc.main.id       # VPC ID
+  target_type = "ip"                  # Target type. ECS task has internal ip address gien to target group and it knows how to foward those requests to the internal ip
+  port        = 8000                  # From 443 to 8000 to the task where we have the reverse proxy running in ecs and foward that to app running in django
+
+  # Api that allows target group to make a request. If it get 200 status code it is healthy, if it gets an unhealthy status code it is stopped
+  # This ensures load balancer only distributes requests to healthy targets
+  health_check {
+    path = "/api/health-check/"
+  }
+}
