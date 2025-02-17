@@ -2,6 +2,10 @@
 # ECS Cluster for tunning app on Fargate #
 ##########################################
 
+resource "aws_iam_service_linked_role" "ecs" {
+  aws_service_name = "ecs.amazonaws.com"
+}
+
 resource "aws_iam_policy" "task_execution_role_policy" { # Create the policy for the task execution
   name        = "${local.prefix}-task-exec-role-policy"
   path        = "/"
