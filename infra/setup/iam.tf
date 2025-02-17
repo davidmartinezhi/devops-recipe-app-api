@@ -281,7 +281,8 @@ data "aws_iam_policy_document" "iam" { # Data is the keyword to define something
       "iam:AttachRolePolicy",
       "iam:TagRole",
       "iam:TagPolicy",
-      "iam:PassRole"
+      "iam:PassRole",
+      "iam:CreateServiceLinkedRole"
     ]
     resources = ["*"]
   }
