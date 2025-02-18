@@ -12,3 +12,22 @@ resource "aws_efs_file_system" "media" {
     Name = "${local.prefix}-media" # Name in the AWS console.
   }
 }
+
+# New security group
+resource "aws_security_group" "efs" {
+  name   = "${local.prefix}-efs" # Name with the preffix that we are using
+  vpc_id = aws_vpc.main.id       # VPC where the security group will be created
+
+  # Allos inbound access on port 2049 from the ECS service security group.
+  ingress {
+    from_port = 2049  # That is the standard port for NFS that EFS uses.
+    to_port   = 2049  # Same as above. 
+    protocol  = "tcp" # TCP protocol
+
+    # Allow it from the ECS service security group.
+    # That will be the only service that will be able to access the EFS.
+    security_groups = [
+      aws_security_group.ecs_service.id
+    ]
+  }
+}

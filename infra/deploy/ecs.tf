@@ -198,6 +198,18 @@ resource "aws_security_group" "ecs_service" {
     ]
   }
 
+  # NFS Port for EFS volumes. 
+  # Rule allow task to have outbound access to port 2049 to mount volume and put files in that volume
+  egress {
+    from_port = 2049 # NFS port
+    to_port   = 2049
+    protocol  = "tcp"
+    cidr_blocks = [
+      aws_subnet.private_a.cidr_block, # Allow access to the private subnets to the EFS. All this is internal
+      aws_subnet.private_b.cidr_block,
+    ]
+  }
+
   # HTTP inbound access
   # We allow access to the proxy from the internet, allow access to port 8000 via TCP on all IP addresses
   # All connections from the internet are made to this port
