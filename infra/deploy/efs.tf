@@ -31,3 +31,18 @@ resource "aws_security_group" "efs" {
     ]
   }
 }
+
+# We need to create a mount target for each availability zone where we have a private subnet.
+# Component that allows us to mount to the file system via the network using NFS.
+# We assign all subnets we want to be accessible, so each task could be running in a different subnet. This is for scaling
+resource "aws_efs_mount_target" "media_a" { # 
+  file_system_id  = aws_efs_file_system.media.id
+  subnet_id       = aws_subnet.private_a.id
+  security_groups = [aws_security_group.efs.id]
+}
+
+resource "aws_efs_mount_target" "media_b" {
+  file_system_id  = aws_efs_file_system.media.id
+  subnet_id       = aws_subnet.private_b.id
+  security_groups = [aws_security_group.efs.id]
+}
