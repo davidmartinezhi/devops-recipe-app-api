@@ -46,3 +46,19 @@ resource "aws_efs_mount_target" "media_b" {
   subnet_id       = aws_subnet.private_b.id
   security_groups = [aws_security_group.efs.id]
 }
+
+# Access point is a way to access the EFS file system.
+# Access point is a way to split up locations in efs file system
+# Give different access to different things
+# If we have different apps and we want to split the efs, then i can add multiple access points and split up
+resource "aws_efs_access_point" "media" {
+  file_system_id = aws_efs_file_system.media.id
+  root_directory {      # Root directory of that access point
+    path = "/api/media" # In this case I just created a single access point for the media folder.
+    creation_info {     # This is for file system creation and permissions of linux user id. in the docker file of project we can set the user id
+      owner_gid   = 101
+      owner_uid   = 101
+      permissions = "755" # This is a linux permission code
+    }
+  }
+}
