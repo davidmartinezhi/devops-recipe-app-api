@@ -391,6 +391,12 @@ data "aws_iam_policy_document" "efs" {
       "elasticfilesystem:CreateAccessPoint",
       "elasticfilesystem:CreateFileSystem",
       "elasticfilesystem:TagResource",
+      "ec2:DescribeNetworkInterfaceAttribute",
+      "ec2:CreateNetworkInterface",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DeleteNetworkInterface",
+      "ec2:DescribeVpcs",
+      "ec2:DescribeSubnets"
     ]
     resources = ["*"]
   }
