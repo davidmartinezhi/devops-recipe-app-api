@@ -101,6 +101,11 @@ resource "aws_ecs_task_definition" "api" {
             readOnly      = false # Django app needs to write to the volume to store static files
             containerPath = "/vol/web/static"
             sourceVolume  = "static"
+          },
+          {                                  # When user uploads image its gonna be processed by the api and be sent to the file system by our app
+            readOnly      = false            # Not read only because we are going to write to the volume
+            containerPath = "/vol/web/media" # Container path, this is defined in the setting.py file
+            sourceVolume  = "efs-media"      # Matches volume defined below
           }
         ],
         logConfiguration = {
@@ -140,6 +145,11 @@ resource "aws_ecs_task_definition" "api" {
             readOnly      = true
             containerPath = "/vol/static"
             sourceVolume  = "static"
+          },
+          {
+            readOnly      = true         # Read only because we are not going to write to the volume, just read
+            containerPath = "/vol/media" # Container path, matches definition in proxy default.conf.tpl file
+            sourceVolume  = "efs-media"  # Matches volume defined below
           }
         ]
 
@@ -158,8 +168,25 @@ resource "aws_ecs_task_definition" "api" {
   )
   # Volume is the location on the running server that has files
   # It allows to share data between running containers. (app and proxy in our case) 
+  # This are the static files from our code, every time they change we want them to be reflected in the next version of our app
   volume {
-    name = "static" # Volume name
+    name = "static" # Volume name, 
+  }
+
+  # This is the volume that we are going to use to store media files
+  # We need this to be persistent to the user, in the current version of the code
+  # This is the volume our containers can use
+  volume {
+    name = "efs-media"                                  # Name
+    efs_volume_configuration {                          # Configuration of efs volume we want it to use
+      file_system_id     = aws_efs_file_system.media.id # File system created in the efs terraform file
+      transit_encryption = "ENABLED"                    # Encrypt the data in transit
+
+      authorization_config {                            # Configuration for the access point, how we authorize with our access point
+        access_point_id = aws_efs_access_point.media.id # Access point id
+        iam             = "DISABLED"                    # Disable IAM authorization, if app is more complicated we can enable it
+      }
+    }
   }
 
   # Defines the type of server that are containers are going to run on

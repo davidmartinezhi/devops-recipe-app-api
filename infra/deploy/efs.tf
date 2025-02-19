@@ -3,7 +3,12 @@
 ##########################
 
 # EFS is a serverless, scalable, and elastic file system that can be mounted on multiple EC2 instances.
-# It's like ecs, you just tell it to create a new file system and it will do it for you.
+# It's like ecs, you just tell it to create a new file system and it will do it for you.\
+
+# First block is to create the efs file system resource
+# Second block is to create a security group for the efs, to allow access
+# Third and fourth block is to create a mount target for each availability zone, allow network access in our private subnets
+# Fifth block is to create an access point for the efs, provision access to efl file sustem at certain locations
 
 # Create the resource which is a wrapper and then we map the resource to the actual EFS file system.
 resource "aws_efs_file_system" "media" {
