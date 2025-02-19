@@ -103,7 +103,7 @@ resource "aws_ecs_task_definition" "api" {
             sourceVolume  = "static"
           },
           {                                  # When user uploads image its gonna be processed by the api and be sent to the file system by our app
-            readOnly      = false            # Not read only because we are going to write to the volume
+            readOnly      = false            # Not read only because we are going to write to the volume to store media files
             containerPath = "/vol/web/media" # Container path, this is defined in the setting.py file
             sourceVolume  = "efs-media"      # Matches volume defined below
           }
