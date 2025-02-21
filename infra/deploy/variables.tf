@@ -37,3 +37,19 @@ variable "ecr_app_image" {
 variable "django_secret_key" {
   description = "Secret key for Django"
 }
+
+variable "dns_zone_name" { # Name of domain name registered in Route53
+  description = "Domain name"
+  default     = "davidmartinezhid.com"
+}
+
+variable "subdomain" { # Because we have multiple environments, we need to create a subdomain for each environment
+  description = "Subdomain for each environment"
+  type        = map(string) # Defining a map of the subdomains which separates the environments
+
+  default = { # If we added a new environment, we would add it here
+    prod    = "api"
+    staging = "api.staging"
+    dev     = "api.dev"
+  }
+}
