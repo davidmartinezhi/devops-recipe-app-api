@@ -13,7 +13,7 @@
 </div>
 
 <br /><br >
-
+  
 # DevOps Deployment Automation with Terraform, AWS and Docker - Starter Code
 
 This project contains the starter code for our course: [DevOps Deployment Automation with Terraform, AWS and Docker](https://londonapp.dev/c3).
@@ -225,4 +225,3 @@ Or find them below:
 - [Build a Backend REST API with Python & Django REST Framework - Beginner](https://londonapp.dev/c1)
 - [Build a Backend REST API with Python & Django REST Framework - Advanced](https://londonapp.dev/c2)
 - [Deploy a Serverless Django App on Google App Engine](https://londonapp.dev/c5)
-
