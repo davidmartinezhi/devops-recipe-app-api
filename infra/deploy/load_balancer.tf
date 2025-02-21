@@ -69,13 +69,33 @@ resource "aws_lb_target_group" "api" {
 
 # Listener is the incoming component of a load balancer, how it accepts requests
 # Outgoing component is the target group, where it fowards requests to
-resource "aws_lb_listener" "api" {
+resource "aws_lb_listener" "api" {   # Anything that comes to the unsecure HTTP gets redirected to HTTPS
   load_balancer_arn = aws_lb.api.arn # Load balancer arn, we are assigning the listener to our load balancer
   port              = 80             # Port of the listener
   protocol          = "HTTP"         # Protocol of the listener. When we have custom domain we can use https
 
-  # Whenever you receive a request on port 80 foward it to our target group, which is a group of resources that we can foward requests to
+  # Whenever you receive a request on port 80 redirect to port 443
   default_action {
+    type = "redirect" # HTTP fowards to HTTPS
+
+    redirect {
+      port        = "443"      # Redirect to port 443
+      protocol    = "HTTPS"    # Redirect to HTTPS
+      status_code = "HTTP_301" # Status code for the redirect, permanently redirected. Saves in the cache of the browser the redirect
+    }
+  }
+}
+
+# Listener for HTTPS
+resource "aws_lb_listener" "api_https" {
+  load_balancer_arn = aws_lb.api.arn # Load balancer arn
+  port              = 443
+  protocol          = "HTTPS"
+
+  certificate_arn = aws_acm_certificate_validation.cert.certificate_arn # Specify certificate it is going to use and that is validated
+
+  # When we get a request on port 443, foward to the target group, where we can find the task
+  default_action {                                 # HTTPS fowards to our target group
     type             = "forward"                   # Action of the listener, foward requests to target group
     target_group_arn = aws_lb_target_group.api.arn # Target group arn for the listener
   }

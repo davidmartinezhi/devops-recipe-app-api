@@ -95,7 +95,7 @@ resource "aws_ecs_task_definition" "api" {
           },
           {
             name  = "ALLOWED_HOSTS"
-            value = "*" # Allowed hosts for the app. Domain names allowed to access the app
+            value = "aws_route53_record.app.fqdn" # Domain name of the app with fully qualified domain name
           }
         ]
         # Maps volumes to location in the running container, 
